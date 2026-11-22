@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DinoMath: Aventura en la Jungla de los Números</title>
+    <!-- Tailwind CSS para diseño responsivo y utilidades -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente amigable e infantil desde Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================================
+           ESTILOS PERSONALIZADOS Y ANIMACIONES DE JUNGLA Y DINOS
+           ========================================================= */
+        :root {
+            --font-display: 'Fredoka', cursive, sans-serif;
+            --font-body: 'Nunito', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3, .font-dino {
+            font-family: var(--font-display);
+        }
+
+        /* Fondos dinámicos según el nivel / escenario de jungla */
+        .theme-welcome {
+            background: linear-gradient(180deg, #38bdf8 0%, #7dd3fc 40%, #4ade80 40%, #15803d 100%);
+        }
+        .theme-easy { /* Jungla Soleada */
+            background: linear-gradient(180deg, #0ea5e9 0%, #bae6fd 45%, #22c55e 45%, #166534 100%);
+        }
+        .theme-normal { /* Río Profundo */
+            background: linear-gradient(180deg, #0284c7 0%, #67e8f9 42%, #0d9488 42%, #115e59 75%, #0284c7 75%, #0369a1 100%);
+        }
+        .theme-hard { /* Volcán Activo */
+            background: linear-gradient(180deg, #7c2d12 0%, #ea580c 45%, #451a03 45%, #1c1917 100%);
+        }
+        .theme-expert { /* Templo Ancestral */
+            background: linear-gradient(180deg, #1e1b4b 0%, #4c1d95 45%, #064e3b 45%, #022c22 100%);
+        }
+
+        /* Animaciones de personajes y entorno */
+        @keyframes dinoIdle {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+
+        @keyframes dinoJump {
+            0% { transform: translateY(0) scale(1, 1); }
+            30% { transform: translateY(5px) scale(1.15, 0.85); }
+            60% { transform: translateY(-45px) scale(0.9, 1.15) rotate(-6deg); }
+            100% { transform: translateY(0) scale(1, 1); }
+        }
+
+        @keyframes dinoHurt {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            20% { transform: translateX(-12px) rotate(-10deg); }
+            40% { transform: translateX(12px) rotate(10deg); }
+            60% { transform: translateX(-8px) rotate(-5deg); }
+            80% { transform: translateX(8px) rotate(5deg); }
+        }
+
+        @keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        @keyframes swayVine {
+            0%, 100% { transform: rotate(-4deg); }
+            50% { transform: rotate(4deg); }
+        }
+
+        @keyframes fallingLeaf {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.9; }
+            85% { opacity: 0.9; }
+            100% { transform: translateY(105vh) translateX(80px) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.6); transform: scale(1); }
+            50% { box-shadow: 0 0 28px rgba(250, 204, 21, 0.95); transform: scale(1.04); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.6) translateY(20px); }
+            70% { opacity: 1; transform: scale(1.05) translateY(-4px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .animate-dino-idle { animation: dinoIdle 2.2s ease-in-out infinite; }
+        .animate-dino-jump { animation: dinoJump 0.65s cubic-bezier(0.28, 0.84, 0.42, 1); }
+        .animate-dino-hurt { animation: dinoHurt 0.55s ease-in-out; }
+        .animate-sway { transform-origin: top center; animation: swayVine 3.5s ease-in-out infinite; }
+        .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-pulse-glow { animation: pulseGlow 2s infinite; }
+
+        /* Botones estilo juego 3D infantil */
+        .btn-dino {
+            transition: all 0.15s ease;
+            border-bottom-width: 6px;
+        }
+        .btn-dino:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+        .btn-dino:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Paneles tipo madera / piedra de jungla */
+        .jungle-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 4px solid #15803d;
+            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255,255,255,0.8);
+        }
+
+        .wood-sign {
+            background: linear-gradient(135deg, #b45309 0%, #78350f 100%);
+            border: 4px solid #451a03;
+            color: #fef3c7;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.35);
+        }
+
+        /* Ocultar barras de scroll innecesarias */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="theme-welcome min-h-screen text-slate-800 relative transition-colors duration-700">
+
+    <!-- =========================================================
+         CAPA DECORATIVA DE JUNGLA ANIMADA (Nubes, Lianas, Hojas)
+         ========================================================= -->
+    <div id="jungle-decor" class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <!-- Nubes en movimiento -->
+        <div class="absolute top-6 left-0 opacity-80" style="animation: floatCloud 38s linear infinite;">
+            <svg width="140" height="50" viewBox="0 0 140 50" fill="white">
+                <path d="M25 40h90a20 20 0 0 0 0-40 25 25 0 0 0-48-5A20 20 0 0 0 25 40z"/>
+            </svg>
+        </div>
+        <div class="absolute top-20 left-0 opacity-60" style="animation: floatCloud 52s linear infinite; animation-delay: -18s;">
+            <svg width="110" height="40" viewBox="0 0 140 50" fill="white">
+                <path d="M25 40h90a20 20 0 0 0 0-40 25 25 0 0 0-48-5A20 20 0 0 0 25 40z"/>
+            </svg>
+        </div>
+
+        <!-- Lianas colgantes superiores -->
+        <div class="hidden sm:block absolute -top-2 left-6 animate-sway">
+            <svg width="60" height="160" viewBox="0 0 60 160">
+                <path d="M30 0 Q 20 50 35 100 T 25 155" stroke="#15803d" stroke-width="5" fill="none"/>
+                <ellipse cx="22" cy="40" rx="12" ry="6" fill="#22c55e" transform="rotate(-25 22 40)"/>
+                <ellipse cx="40" cy="75" rx="12" ry="6" fill="#16a34a" transform="rotate(25 40 75)"/>
+                <ellipse cx="20" cy="115" rx="12" ry="6" fill="#4ade80" transform="rotate(-20 20 115)"/>
+            </svg>
+        </div>
+        <div class="hidden sm:block absolute -top-2 right-8 animate-sway" style="animation-delay: -1.5s;">
+            <svg width="60" height="180" viewBox="0 0 60 180">
+                <path d="M30 0 Q 42 60 25 110 T 35 175" stroke="#166534" stroke-width="5" fill="none"/>
+                <ellipse cx="38" cy="45" rx="13" ry="6" fill="#22c55e" transform="rotate(25 38 45)"/>
+                <ellipse cx="20" cy="90" rx="13" ry="6" fill="#4ade80" transform="rotate(-25 20 90)"/>
+                <ellipse cx="38" cy="135" rx="13" ry="6" fill="#16a34a" transform="rotate(20 38 135)"/>
+            </svg>
+        </div>
+
+        <!-- Contenedor dinámico para hojas cayendo / luciérnagas / cenizas -->
+        <div id="ambient-particles"></div>
+    </div>
+
+    <!-- =========================================================
+         BARRA SUPERIOR DE CONTROLES (Sonido y Navegación rápida)
+         ========================================================= -->
+    <header class="relative z-20 max-w-6xl mx-auto px-4 pt-3 flex justify-between items-center">
+        <div id="header-player-badge" class="hidden items-center gap-2 bg-white/90 border-2 border-emerald-600 rounded-full px-3 py-1 shadow-md">
+            <div id="header-dino-mini" class="w-8 h-8"></div>
+            <span id="header-player-name" class="font-dino font-bold text-emerald-900 text-sm sm:text-base">Explorador</span>
+            <span class="bg-amber-400 text-amber-950 font-extrabold text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                🏆 <span id="header-trophy-count">0</span>
+            </span>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+            <button id="btn-toggle-sound" onclick="SoundFX.toggle()" class="btn-dino bg-amber-400 hover:bg-amber-300 border-amber-600 text-amber-950 font-bold px-3 py-2 rounded-2xl shadow-md flex items-center gap-1.5 text-sm" title="Activar o silenciar sonidos">
+                <span id="sound-icon">🔊</span>
+                <span class="hidden sm:inline" id="sound-label">Sonido ON</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- =========================================================
+         CONTENEDOR PRINCIPAL DE PANTALLAS (SPA)
+         ========================================================= -->
+    <main class="relative z-10 max-w-5xl mx-auto px-4 py-4 sm:py-6">
+
+        <!-- *******************************************************
+             PANTALLA 1: BIENVENIDA Y SELECCIÓN DE PERSONAJE
+             ******************************************************* -->
+        <section id="screen-welcome" class="animate-pop-in">
+            <div class="jungle-card rounded-3xl p-5 sm:p-8 text-center max-w-4xl mx-auto">
+                <!-- Título llamativo -->
+                <div class="inline-block bg-amber-400 text-amber-950 font-extrabold text-xs sm:text-sm uppercase tracking-wider px-4 py-1 rounded-full border-2 border-amber-600 mb-2 shadow-sm">
+                    🌴 Aventura Educativa de Teoría de los Números 🌴
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-emerald-800 drop-shadow-sm mb-2">
+                    DinoMath: Jungla de los Números
+                </h1>
+                <p class="text-slate-600 font-semibold text-sm sm:text-lg max-w-2xl mx-auto mb-6">
+                    ¡Elige tu dinosaurio favorito, escribe tu nombre de explorador y domina los <span class="text-emerald-700 font-bold">Múltiplos, Divisores, MCD y MCM</span>!
+                </p>
+
+                <!-- Paso 1: Nombre del jugador -->
+                <div class="max-w-md mx-auto mb-6">
+                    <label for="input-player-name" class="block font-dino text-lg text-emerald-900 mb-1">
+                        1. ¿Cómo te llamas, explorador/a?
+                    </label>
+                    <input type="text" id="input-player-name" maxlength="18" placeholder="Escribe tu nombre aquí..." 
+                        class="w-full text-center font-dino text-xl px-4 py-3 rounded-2xl border-4 border-emerald-500 focus:border-amber-500 focus:outline-none bg-emerald-50 text-emerald-950 placeholder-emerald-400 shadow-inner">
+                </div>
+
+                <!-- Paso 2: Selección de Personaje Dinosaurio -->
+                <div class="mb-7">
+                    <h2 class="font-dino text-lg sm:text-xl text-emerald-900 mb-3">
+                        2. Escoge tu compañero Dinosaurio:
+                    </h2>
+                    <div id="dino-selector-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <!-- Se llena dinámicamente desde JS con SVGs animados -->
+                    </div>
+                </div>
+
+                <!-- Botón Iniciar Aventura -->
+                <button onclick="GameApp.startAdventure()" class="btn-dino bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 border-emerald-800 text-white font-dino text-xl sm:text-2xl px-8 py-4 rounded-3xl shadow-xl animate-pulse-glow inline-flex items-center gap-3">
+                    <span>¡Comenzar Aventura!</span>
+                    <span class="text-2xl">🚀</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- *******************************************************
+             PANTALLA 2: MENÚ PRINCIPAL DE JUEGOS EDUCATIVOS (3 OPCIONES)
+             ******************************************************* -->
+        <section id="screen-menu" class="hidden animate-pop-in">
+            <!-- Cabecera de bienvenida personalizada -->
+            <div class="wood-sign rounded-3xl p-4 sm:p-6 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div id="menu-dino-avatar" class="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100/20 rounded-2xl p-1 border-2 border-amber-400/50 animate-dino-idle"></div>
+                    <div class="text-center sm:text-left">
+                        <span class="text-amber-300 text-xs sm:text-sm font-bold uppercase tracking-wider">Campamento Base</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                            ¡Hola, <span id="menu-player-name" class="text-amber-300">Explorador</span>!
+                        </h2>
+                        <p class="text-amber-100 text-sm">Elige una zona de la jungla para entrenar tu mente:</p>
+                    </div>
+                </div>
+                <button onclick="GameApp.showTrophyModal()" class="btn-dino bg-amber-400 hover:bg-amber-300 border-amber-700 text-amber-950 font-dino font-bold px-4 py-3 rounded-2xl flex items-center gap-2 shadow-lg">
+                    <span class="text-2xl">🏆</span>
+                    <div class="text-left leading-tight">
+                        <div class="text-xs uppercase opacity-80">Mis Premios</div>
+                        <div class="text-base"><span id="menu-trophy-count">0</span> / 12 Ganados</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- 3 Tarjetas de Opciones Educativas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Opción 1: Múltiplos -->
+                <div onclick="GameApp.selectCategory('multiples')" class="cursor-pointer group jungle-card rounded-3xl p-6 border-emerald-600 hover:border-amber-500 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-br from-emerald-100 to-lime-200 rounded-2xl mb-4 flex items-center justify-center relative overflow-hidden border-2 border-emerald-300">
+                            <span class="text-6xl group-hover:scale-125 transition-transform duration-300">🌿</span>
+                            <span class="absolute bottom-2 right-2 bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">4 Niveles</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-emerald-800 mb-2">1. El Salto de los Múltiplos</h3>
+                        <p class="text-slate-600 text-sm mb-4">
+                            Ayuda a tu dino a saltar de roca en roca encontrando los múltiplos exactos de cada número.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-emerald-700 mb-1">
+                            <span>Progreso:</span>
+                            <span id="prog-text-multiples">0 / 4 Niveles</span>
+                        </div>
+                        <div class="w-full bg-emerald-100 h-3 rounded-full overflow-hidden mb-4 border border-emerald-300">
+                            <div id="prog-bar-multiples" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <button class="w-full btn-dino bg-emerald-500 group-hover:bg-emerald-400 border-emerald-700 text-white font-dino font-bold py-3 rounded-2xl text-lg">
+                            ¡Explorar Múltiplos! ➔
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Opción 2: Divisores -->
+                <div onclick="GameApp.selectCategory('divisors')" class="cursor-pointer group jungle-card rounded-3xl p-6 border-sky-600 hover:border-amber-500 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-br from-sky-100 to-cyan-200 rounded-2xl mb-4 flex items-center justify-center relative overflow-hidden border-2 border-sky-300">
+                            <span class="text-6xl group-hover:scale-125 transition-transform duration-300">💎</span>
+                            <span class="absolute bottom-2 right-2 bg-sky-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">4 Niveles</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-sky-800 mb-2">2. La Cueva de los Divisores</h3>
+                        <p class="text-slate-600 text-sm mb-4">
+                            Descubre qué números dividen de forma exacta a los cristales jurásicos escondidos en la cueva.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-sky-700 mb-1">
+                            <span>Progreso:</span>
+                            <span id="prog-text-divisors">0 / 4 Niveles</span>
+                        </div>
+                        <div class="w-full bg-sky-100 h-3 rounded-full overflow-hidden mb-4 border border-sky-300">
+                            <div id="prog-bar-divisors" class="bg-sky-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <button class="w-full btn-dino bg-sky-500 group-hover:bg-sky-400 border-sky-700 text-white font-dino font-bold py-3 rounded-2xl text-lg">
+                            ¡Explorar Divisores! ➔
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Opción 3: MCD y MCM -->
+                <div onclick="GameApp.selectCategory('mcd_mcm')" class="cursor-pointer group jungle-card rounded-3xl p-6 border-purple-600 hover:border-amber-500 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between">
+                    <div>
+                        <div class="w-full h-36 bg-gradient-to-br from-purple-100 to-fuchsia-200 rounded-2xl mb-4 flex items-center justify-center relative overflow-hidden border-2 border-purple-300">
+                            <span class="text-6xl group-hover:scale-125 transition-transform duration-300">🏛️</span>
+                            <span class="absolute bottom-2 right-2 bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">4 Niveles</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-purple-800 mb-2">3. Templo del MCD y MCM</h3>
+                        <p class="text-slate-600 text-sm mb-4">
+                            Resuelve los acertijos ancestrales del Máximo Común Divisor y el Mínimo Común Múltiplo.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-purple-700 mb-1">
+                            <span>Progreso:</span>
+                            <span id="prog-text-mcd_mcm">0 / 4 Niveles</span>
+                        </div>
+                        <div class="w-full bg-purple-100 h-3 rounded-full overflow-hidden mb-4 border border-purple-300">
+                            <div id="prog-bar-mcd_mcm" class="bg-purple-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <button class="w-full btn-dino bg-purple-600 group-hover:bg-purple-500 border-purple-800 text-white font-dino font-bold py-3 rounded-2xl text-lg">
+                            ¡Entrar al Templo! ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón para cambiar personaje -->
+            <div class="text-center mt-6">
+                <button onclick="GameApp.goToScreen('welcome')" class="text-white/90 hover:text-white underline font-bold text-sm bg-black/25 px-4 py-2 rounded-full">
+                    ← Cambiar nombre o dinosaurio
+                </button>
+            </div>
+        </section>
+
+        <!-- *******************************************************
+             PANTALLA 3: SELECCIÓN DE NIVELES (4 DIFICULTADES)
+             ******************************************************* -->
+        <section id="screen-levels" class="hidden animate-pop-in">
+            <div class="jungle-card rounded-3xl p-5 sm:p-8">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b-2 border-emerald-200">
+                    <button onclick="GameApp.goToScreen('menu')" class="btn-dino bg-slate-200 hover:bg-slate-300 border-slate-400 text-slate-800 font-bold px-4 py-2 rounded-2xl text-sm">
+                        ← Menú Principal
+                    </button>
+                    <div class="text-center flex-1">
+                        <span id="level-cat-badge" class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Categoría</span>
+                        <h2 id="level-cat-title" class="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1">Título de la Categoría</h2>
+                    </div>
+                    <div class="w-24 hidden sm:block"></div>
+                </div>
+
+                <p class="text-center text-slate-600 font-semibold mb-6">
+                    Cada nivel tiene <span class="text-emerald-700 font-extrabold">10 retos</span> en un escenario distinto de la jungla. ¡Completa cada nivel para ganar su premio único!
+                </p>
+
+                <!-- Ruta de 4 niveles -->
+                <div id="levels-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Se genera dinámicamente desde JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- *******************************************************
+             PANTALLA 4: ARENA DE JUEGO INTERACTIVO (10 PREGUNTAS)
+             ******************************************************* -->
+        <section id="screen-game" class="hidden animate-pop-in">
+            <!-- Barra superior de estado de partida -->
+            <div class="wood-sign rounded-2xl p-3 sm:p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+                <button onclick="GameApp.confirmQuitLevel()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs sm:text-sm border-b-4 border-red-800">
+                    ✖ Salir
+                </button>
+
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="bg-black/30 px-3 py-1 rounded-xl text-center">
+                        <div class="text-[10px] uppercase text-amber-300 font-bold">Nivel</div>
+                        <div id="hud-level-name" class="font-dino text-sm sm:text-base font-bold text-white">Fácil</div>
+                    </div>
+                    <div class="bg-black/30 px-3 py-1 rounded-xl text-center">
+                        <div class="text-[10px] uppercase text-amber-300 font-bold">Pregunta</div>
+                        <div class="font-dino text-sm sm:text-base font-bold text-white"><span id="hud-q-current">1</span> / 10</div>
+                    </div>
+                    <div class="bg-black/30 px-3 py-1 rounded-xl text-center">
+                        <div class="text-[10px] uppercase text-amber-300 font-bold">Puntos</div>
+                        <div id="hud-score" class="font-dino text-sm sm:text-base font-bold text-lime-300">0</div>
+                    </div>
+                </div>
+
+                <!-- Vidas / Energía del Dino -->
+                <div class="flex items-center gap-1 bg-black/30 px-3 py-1.5 rounded-xl" id="hud-lives" title="Energía del Dinosaurio">
+                    ❤️❤️❤️
+                </div>
+            </div>
+
+            <!-- Escenario Visual Dinámico: Sendero de Jungla y Movimiento del Dino -->
+            <div id="game-stage" class="relative rounded-3xl p-4 sm:p-6 mb-4 overflow-hidden border-4 border-white/40 shadow-xl bg-gradient-to-b from-sky-300/30 to-emerald-950/60 backdrop-blur-sm">
+                <div class="flex justify-between items-center text-white text-xs font-bold mb-2 drop-shadow">
+                    <span id="stage-biome-label">☀️ Jungla Soleada</span>
+                    <span id="stage-streak-badge" class="bg-amber-500 text-amber-950 px-2.5 py-0.5 rounded-full hidden">🔥 Racha: 0</span>
+                </div>
+
+                <!-- Pista de 10 piedras / plataformas hasta el Cofre/Huevo Premio -->
+                <div class="relative h-28 sm:h-32 flex items-end justify-between px-2 sm:px-6 pt-8">
+                    <!-- Línea conectora -->
+                    <div class="absolute bottom-5 left-6 right-6 h-2 bg-amber-900/60 rounded-full"></div>
+
+                    <!-- Piedras de progreso (0 a 10) -->
+                    <div id="stepping-stones" class="relative z-10 w-full flex justify-between items-end">
+                        <!-- Generado por JS -->
+                    </div>
+
+                    <!-- Personaje Dinosaurio que se mueve por las piedras -->
+                    <div id="game-dino-actor" class="absolute bottom-6 z-20 w-16 h-16 sm:w-20 sm:h-20 transition-all duration-500 ease-out animate-dino-idle" style="left: 2%;">
+                        <!-- SVG del dino activo -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Pregunta y Opciones Múltiples -->
+            <div class="jungle-card rounded-3xl p-5 sm:p-8 text-center">
+                <div class="inline-block bg-emerald-100 text-emerald-800 font-extrabold text-xs sm:text-sm px-3 py-1 rounded-full mb-3" id="question-topic-pill">
+                    Reto Matemático
+                </div>
+                
+                <h3 id="question-text" class="text-xl sm:text-3xl font-extrabold text-slate-800 mb-2 leading-snug">
+                    ¿Cuál de los siguientes números es múltiplo de 6?
+                </h3>
+                <p id="question-hint" class="text-slate-500 text-xs sm:text-sm font-semibold mb-6">
+                    Selecciona la respuesta correcta para que tu dinosaurio avance.
+                </p>
+
+                <!-- Botones de Respuesta (4 opciones grandes táctiles) -->
+                <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
+                    <!-- Opciones generadas dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- *******************************************************
+             PANTALLA 5: VICTORIA Y ENTREGA DE PREMIO COLECCIONABLE
+             ******************************************************* -->
+        <section id="screen-victory" class="hidden animate-pop-in">
+            <div class="jungle-card rounded-3xl p-6 sm:p-10 text-center max-w-2xl mx-auto border-amber-500 relative overflow-hidden">
+                <div class="inline-block bg-amber-400 text-amber-950 font-extrabold text-sm px-4 py-1 rounded-full mb-3 shadow">
+                    🎉 ¡NIVEL COMPLETADO! 🎉
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-emerald-800 mb-2">
+                    ¡Increíble trabajo, <span id="victory-player-name">Explorador</span>!
+                </h2>
+                <p id="victory-subtitle" class="text-slate-600 font-semibold mb-6">
+                    Has superado los 10 retos de este escenario jurásico.
+                </p>
+
+                <!-- Premio Desbloqueado -->
+                <div class="bg-gradient-to-b from-amber-50 to-amber-100 border-4 border-amber-400 rounded-3xl p-6 mb-6 max-w-sm mx-auto shadow-inner animate-pulse-glow">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-amber-700 mb-2">
+                        ✨ Premio Obtenido ✨
+                    </div>
+                    <div id="victory-reward-icon" class="w-28 h-28 mx-auto mb-2 flex items-center justify-center text-7xl">
+                        🥚
+                    </div>
+                    <h3 id="victory-reward-name" class="text-2xl font-extrabold text-amber-900">
+                        Huevo Dorado de Rex
+                    </h3>
+                    <p id="victory-reward-desc" class="text-xs text-amber-800 mt-1">
+                        Guardado en tu vitrina de premios.
+                    </p>
+                </div>
+
+                <!-- Resumen de estadísticas -->
+                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-7">
+                    <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-3">
+                        <div class="text-xs text-emerald-700 font-bold">Puntaje</div>
+                        <div id="victory-score" class="font-dino text-xl font-extrabold text-emerald-900">1000</div>
+                    </div>
+                    <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-3">
+                        <div class="text-xs text-sky-700 font-bold">Aciertos</div>
+                        <div id="victory-accuracy" class="font-dino text-xl font-extrabold text-sky-900">10/10</div>
+                    </div>
+                    <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-3">
+                        <div class="text-xs text-purple-700 font-bold">Mejor Racha</div>
+                        <div id="victory-streak" class="font-dino text-xl font-extrabold text-purple-900">🔥 5</div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="GameApp.backToLevels()" class="btn-dino bg-emerald-500 hover:bg-emerald-400 border-emerald-700 text-white font-dino font-bold px-6 py-3 rounded-2xl text-lg">
+                        🗺️ Mapa de Niveles
+                    </button>
+                    <button onclick="GameApp.retryCurrentLevel()" class="btn-dino bg-amber-400 hover:bg-amber-300 border-amber-600 text-amber-950 font-dino font-bold px-6 py-3 rounded-2xl text-lg">
+                        🔄 Jugar de Nuevo
+                    </button>
+                    <button onclick="GameApp.goToScreen('menu')" class="btn-dino bg-sky-500 hover:bg-sky-400 border-sky-700 text-white font-dino font-bold px-6 py-3 rounded-2xl text-lg">
+                        🏠 Menú Principal
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =========================================================
+         SISTEMA DE NOTIFICACIONES Y ALERTAS INTERACTIVAS
+         (¡ÉXITO!, ¡ALERTA!, ¡NOTICIA!, DERROTA, VITRINA)
+         ========================================================= -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div id="modal-card" class="bg-white rounded-3xl max-w-md w-full p-6 text-center border-4 shadow-2xl animate-pop-in relative">
+            <!-- Ilustración SVG / Visual dinámica de Alerta -->
+            <div id="modal-illustration" class="w-28 h-28 mx-auto mb-3 flex items-center justify-center"></div>
+            
+            <!-- Etiqueta tipo de notificación (¡ÉXITO!, ¡ALERTA!, ¡NOTICIA!) -->
+            <div id="modal-badge" class="inline-block font-dino font-extrabold text-sm uppercase tracking-wider px-4 py-1 rounded-full mb-2">
+                ¡ÉXITO!
+            </div>
+
+            <h3 id="modal-title" class="text-2xl font-extrabold text-slate-800 mb-2">
+                ¡Respuesta Correcta!
+            </h3>
+
+            <p id="modal-message" class="text-slate-600 font-semibold text-sm sm:text-base mb-5 leading-relaxed">
+                Explicación matemática aquí.
+            </p>
+
+            <div id="modal-actions" class="flex justify-center gap-3">
+                <button id="modal-primary-btn" class="btn-dino font-dino font-bold px-8 py-3 rounded-2xl text-lg text-white">
+                    ¡Continuar! ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Vitrina de Premios Coleccionables -->
+    <div id="trophy-modal" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="jungle-card rounded-3xl max-w-3xl w-full p-6 max-h-[88vh] overflow-y-auto animate-pop-in">
+            <div class="flex justify-between items-center border-b-2 border-emerald-200 pb-3 mb-4">
+                <h3 class="text-2xl sm:text-3xl font-extrabold text-emerald-900 flex items-center gap-2">
+                    <span>🏆</span> Vitrina de Premios Jurásicos
+                </h3>
+                <button onclick="GameApp.closeTrophyModal()" class="bg-red-100 hover:bg-red-200 text-red-700 font-extrabold w-10 h-10 rounded-full text-xl">
+                    ✖
+                </button>
+            </div>
+            <p class="text-slate-600 text-sm mb-4">
+                Completa cada nivel de Múltiplos, Divisores y MCD/MCM para coleccionar los 12 tesoros ancestrales.
+            </p>
+            <div id="trophy-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <!-- Generado por JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor para confeti de celebración -->
+    <div id="confetti-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+    <!-- =========================================================
+         LÓGICA MODULAR DEL JUEGO EN JAVASCRIPT
+         ========================================================= -->
+    <script>
+        /**
+         * MÓDULO 1: SINTETIZADOR DE EFECTOS DE SONIDO (Web Audio API)
+         * Genera sonidos divertidos sin depender de archivos externos.
+         */
+        const SoundFX = {
+            ctx: null,
+            enabled: true,
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            },
+
+            toggle() {
+                this.enabled = !this.enabled;
+                document.getElementById('sound-icon').textContent = this.enabled ? '🔊' : '🔇';
+                document.getElementById('sound-label').textContent = this.enabled ? 'Sonido ON' : 'Silencio';
+                if (this.enabled) {
+                    this.init();
+                    this.playTone(523.25, 'sine', 0.12);
+                }
+            },
+
+            playTone(freq, type = 'sine', duration = 0.2, delay = 0) {
+                if (!this.enabled) return;
+                try {
+                    this.init();
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + delay);
+                    osc.stop(this.ctx.currentTime + delay + duration);
+                } catch (e) { /* Ignorar si el navegador bloquea audio antes de interacción */ }
+            },
+
+            success() {
+                this.playTone(523.25, 'triangle', 0.14, 0);     // Do
+                this.playTone(659.25, 'triangle', 0.14, 0.1);   // Mi
+                this.playTone(783.99, 'triangle', 0.25, 0.2);   // Sol
+            },
+
+            error() {
+                this.playTone(300, 'sawtooth', 0.2, 0);
+                this.playTone(210, 'sawtooth', 0.35, 0.18);
+            },
+
+            news() {
+                this.playTone(587.33, 'sine', 0.12, 0);
+                this.playTone(880, 'sine', 0.25, 0.12);
+            },
+
+            victory() {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                notes.forEach((n, idx) => this.playTone(n, 'triangle', 0.18, idx * 0.12));
+            }
+        };
+
+        /**
+         * MÓDULO 2: ILUSTRACIONES SVG DE DINOSAURIOS Y ALERTAS
+         */
+        const DinoAssets = {
+            characters: [
+                {
+                    id: 'rexy',
+                    name: 'Rexy',
+                    species: 'T-Rex Valiente',
+                    color: '#22c55e',
+                    accent: '#15803d',
+                    desc: '¡Gran saltador de múltiplos!',
+                    svg: `<svg viewBox="0 0 120 120" class="w-full h-full drop-shadow">
+                            <ellipse cx="60" cy="110" rx="32" ry="6" fill="rgba(0,0,0,0.2)"/>
+                            <!-- Cola -->
+                            <path d="M35 78 Q 10 75 14 55 Q 25 68 42 68 Z" fill="#16a34a"/>
+                            <!-- Patas -->
+                            <rect x="46" y="88" width="10" height="18" rx="4" fill="#15803d"/>
+                            <rect x="64" y="88" width="10" height="18" rx="4" fill="#15803d"/>
+                            <!-- Cuerpo -->
+                            <path d="M40 55 Q 38 92 60 92 Q 82 92 78 55 Z" fill="#22c55e"/>
+                            <path d="M52 60 Q 52 88 64 88 Q 74 88 73 60 Z" fill="#bbf7d0"/>
+                            <!-- Bracitos -->
+                            <path d="M74 64 L 86 60 L 84 67" stroke="#15803d" stroke-width="4" stroke-linecap="round" fill="none"/>
+                            <!-- Cabeza -->
+                            <rect x="44" y="20" width="48" height="36" rx="16" fill="#22c55e"/>
+                            <!-- Cresta -->
+                            <polygon points="48,20 53,11 58,20" fill="#facc15"/>
+                            <polygon points="60,20 65,11 70,20" fill="#facc15"/>
+                            <!-- Ojo -->
+                            <circle cx="74" cy="34" r="6" fill="white"/>
+                            <circle cx="76" cy="34" r="3" fill="#0f172a"/>
+                            <circle cx="77" cy="33" r="1" fill="white"/>
+                            <!-- Sonrisa y dientes -->
+                            <path d="M66 46 Q 78 52 90 45" stroke="#14532d" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <polygon points="72,47 75,52 78,47" fill="white"/>
+                            <polygon points="81,47 84,52 87,46" fill="white"/>
+                          </svg>`
+                },
+                {
+                    id: 'triki',
+                    name: 'Triki',
+                    species: 'Triceratops Sabio',
+                    color: '#38bdf8',
+                    accent: '#0369a1',
+                    desc: '¡Experto en romper divisores!',
+                    svg: `<svg viewBox="0 0 120 120" class="w-full h-full drop-shadow">
+                            <ellipse cx="60" cy="110" rx="35" ry="6" fill="rgba(0,0,0,0.2)"/>
+                            <!-- Cola -->
+                            <path d="M30 80 Q 10 82 14 68 Q 25 74 35 72 Z" fill="#0284c7"/>
+                            <!-- Patas -->
+                            <rect x="38" y="88" width="11" height="17" rx="4" fill="#0369a1"/>
+                            <rect x="65" y="88" width="11" height="17" rx="4" fill="#0369a1"/>
+                            <!-- Cuerpo -->
+                            <ellipse cx="56" cy="74" rx="28" ry="20" fill="#38bdf8"/>
+                            <!-- Volante / Escudo -->
+                            <circle cx="68" cy="48" r="24" fill="#0ea5e9" stroke="#facc15" stroke-width="4" stroke-dasharray="6 4"/>
+                            <!-- Cabeza -->
+                            <rect x="56" y="36" width="38" height="30" rx="14" fill="#38bdf8"/>
+                            <!-- Cuernos -->
+                            <polygon points="84,38 104,28 88,45" fill="#fef08a"/>
+                            <polygon points="72,36 86,20 78,40" fill="#fef08a"/>
+                            <polygon points="92,54 106,50 93,60" fill="#fef08a"/>
+                            <!-- Ojo -->
+                            <circle cx="78" cy="48" r="5.5" fill="white"/>
+                            <circle cx="80" cy="48" r="2.8" fill="#0f172a"/>
+                            <!-- Boca -->
+                            <path d="M74 60 Q 82 64 90 59" stroke="#0c4a6e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                          </svg>`
+                },
+                {
+                    id: 'veloci',
+                    name: 'Veloci',
+                    species: 'Velociraptor Ágil',
+                    color: '#fb923c',
+                    accent: '#c2410c',
+                    desc: '¡Veloz calculando el MCM!',
+                    svg: `<svg viewBox="0 0 120 120" class="w-full h-full drop-shadow">
+                            <ellipse cx="60" cy="110" rx="30" ry="6" fill="rgba(0,0,0,0.2)"/>
+                            <!-- Cola larga -->
+                            <path d="M40 74 Q 8 60 12 40 Q 26 58 46 64 Z" fill="#ea580c"/>
+                            <!-- Patas -->
+                            <path d="M50 86 L 44 104 L 54 104" stroke="#c2410c" stroke-width="6" stroke-linecap="round" fill="none"/>
+                            <path d="M66 86 L 62 104 L 72 104" stroke="#c2410c" stroke-width="6" stroke-linecap="round" fill="none"/>
+                            <!-- Cuerpo -->
+                            <ellipse cx="58" cy="72" rx="18" ry="20" transform="rotate(-15 58 72)" fill="#fb923c"/>
+                            <!-- Plumas cabeza -->
+                            <path d="M56 24 L 46 10 L 62 20 L 58 8 L 68 20" fill="#ef4444"/>
+                            <!-- Cabeza -->
+                            <path d="M54 24 Q 88 20 96 38 Q 88 50 56 46 Z" fill="#fb923c"/>
+                            <!-- Franja -->
+                            <path d="M56 32 Q 74 30 86 35" stroke="#fef08a" stroke-width="3" fill="none"/>
+                            <!-- Ojo -->
+                            <circle cx="72" cy="33" r="5" fill="white"/>
+                            <circle cx="74" cy="33" r="2.5" fill="#0f172a"/>
+                            <!-- Sonrisa -->
+                            <path d="M72 42 Q 82 45 91 40" stroke="#7c2d12" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                          </svg>`
+                },
+                {
+                    id: 'bronto',
+                    name: 'Bronto',
+                    species: 'Braquiosaurio Gigante',
+                    color: '#c084fc',
+                    accent: '#7e22ce',
+                    desc: '¡Alcanza los números más altos!',
+                    svg: `<svg viewBox="0 0 120 120" class="w-full h-full drop-shadow">
+                            <ellipse cx="60" cy="110" rx="36" ry="6" fill="rgba(0,0,0,0.2)"/>
+                            <!-- Cola -->
+                            <path d="M34 86 Q 12 90 16 76 Q 26 80 38 78 Z" fill="#9333ea"/>
+                            <!-- Patas -->
+                            <rect x="40" y="88" width="11" height="18" rx="4" fill="#7e22ce"/>
+                            <rect x="64" y="88" width="11" height="18" rx="4" fill="#7e22ce"/>
+                            <!-- Cuerpo -->
+                            <ellipse cx="56" cy="78" rx="26" ry="18" fill="#c084fc"/>
+                            <!-- Cuello largo -->
+                            <path d="M66 72 Q 68 35 72 24 L 84 26 Q 82 48 80 74 Z" fill="#c084fc"/>
+                            <!-- Manchas -->
+                            <circle cx="48" cy="74" r="4" fill="#e9d5ff"/>
+                            <circle cx="60" cy="82" r="5" fill="#e9d5ff"/>
+                            <circle cx="75" cy="48" r="3" fill="#e9d5ff"/>
+                            <!-- Cabeza -->
+                            <rect x="66" y="14" width="30" height="22" rx="11" fill="#c084fc"/>
+                            <circle cx="76" cy="13" r="5" fill="#a855f7"/>
+                            <!-- Ojo -->
+                            <circle cx="84" cy="22" r="4.5" fill="white"/>
+                            <circle cx="85.5" cy="22" r="2.2" fill="#0f172a"/>
+                            <!-- Sonrisa -->
+                            <path d="M80 30 Q 86 33 93 29" stroke="#581c87" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                          </svg>`
+                }
+            ],
+
+            /* Ilustraciones SVG personalizadas para las alertas visuales */
+            alertSVGs: {
+                success: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                            <circle cx="60" cy="60" r="52" fill="#dcfce7" stroke="#22c55e" stroke-width="6"/>
+                            <polygon points="60,14 66,30 83,30 69,40 74,56 60,46 46,56 51,40 37,30 54,30" fill="#facc15" stroke="#eab308" stroke-width="2"/>
+                            <path d="M38 72 L 54 88 L 84 56" stroke="#16a34a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                          </svg>`,
+                error: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                            <polygon points="60,12 110,98 10,98" fill="#fee2e2" stroke="#ef4444" stroke-width="6" stroke-linejoin="round"/>
+                            <rect x="55" y="42" width="10" height="30" rx="5" fill="#dc2626"/>
+                            <circle cx="60" cy="84" r="6" fill="#dc2626"/>
+                          </svg>`,
+                news: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                            <rect x="20" y="24" width="80" height="72" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="6"/>
+                            <rect x="14" y="18" width="92" height="14" rx="7" fill="#b45309"/>
+                            <rect x="14" y="88" width="92" height="14" rx="7" fill="#b45309"/>
+                            <text x="60" y="68" font-size="34" text-anchor="middle" fill="#b45309" font-weight="bold">★</text>
+                          </svg>`
+            }
+        };
+
+        /**
+         * MÓDULO 3: CONFIGURACIÓN DE CATEGORÍAS, NIVELES Y PREMIOS
+         */
+        const GameConfig = {
+            categories: {
+                multiples: {
+                    id: 'multiples',
+                    title: 'El Salto de los Múltiplos',
+                    badge: 'Múltiplos',
+                    color: 'emerald',
+                    rewards: [
+                        { id: 'm1', name: 'Huevo Esmeralda', icon: '🥚', desc: 'Premio del nivel Fácil de Múltiplos' },
+                        { id: 'm2', name: 'Ammonite de Río', icon: '🐚', desc: 'Premio del nivel Normal de Múltiplos' },
+                        { id: 'm3', name: 'Rubí Volcánico', icon: '🌋', desc: 'Premio del nivel Difícil de Múltiplos' },
+                        { id: 'm4', name: 'Corona del Rey Dino', icon: '👑', desc: 'Premio Maestro de Múltiplos' }
+                    ]
+                },
+                divisors: {
+                    id: 'divisors',
+                    title: 'La Cueva de los Divisores',
+                    badge: 'Divisores',
+                    color: 'sky',
+                    rewards: [
+                        { id: 'd1', name: 'Helecho Dorado', icon: '🌿', desc: 'Premio del nivel Fácil de Divisores' },
+                        { id: 'd2', name: 'Perla Jurásica', icon: '🔮', desc: 'Premio del nivel Normal de Divisores' },
+                        { id: 'd3', name: 'Ámbar Prehistórico', icon: '🟠', desc: 'Premio del nivel Difícil de Divisores' },
+                        { id: 'd4', name: 'Diamante Ancestral', icon: '💎', desc: 'Premio Maestro de Divisores' }
+                    ]
+                },
+                mcd_mcm: {
+                    id: 'mcd_mcm',
+                    title: 'Templo del MCD y MCM',
+                    badge: 'MCD y MCM',
+                    color: 'purple',
+                    rewards: [
+                        { id: 'c1', name: 'Brújula de Madera', icon: '🧭', desc: 'Premio del nivel Fácil de MCD y MCM' },
+                        { id: 'c2', name: 'Tridente del Agua', icon: '🔱', desc: 'Premio del nivel Normal de MCD y MCM' },
+                        { id: 'c3', name: 'Garra de Obsidiana', icon: '🦖', desc: 'Premio del nivel Difícil de MCD y MCM' },
+                        { id: 'c4', name: 'Trofeo Supremosaurio', icon: '🏆', desc: 'Gran Premio Final del Templo' }
+                    ]
+                }
+            },
+
+            levels: [
+                {
+                    index: 0,
+                    id: 'easy',
+                    name: '1. Fácil',
+                    biome: '☀️ Jungla Soleada',
+                    themeClass: 'theme-easy',
+                    particleType: 'leaf',
+                    desc: 'Números pequeños para calentar motores.',
+                    btnColor: 'bg-emerald-500 border-emerald-700 hover:bg-emerald-400'
+                },
+                {
+                    index: 1,
+                    id: 'normal',
+                    name: '2. Normal',
+                    biome: '🌊 Río Profundo',
+                    themeClass: 'theme-normal',
+                    particleType: 'bubble',
+                    desc: 'Cruza las corrientes con cálculos intermedios.',
+                    btnColor: 'bg-sky-500 border-sky-700 hover:bg-sky-400'
+                },
+                {
+                    index: 2,
+                    id: 'hard',
+                    name: '3. Difícil',
+                    biome: '🌋 Volcán Activo',
+                    themeClass: 'theme-hard',
+                    particleType: 'ember',
+                    desc: '¡Cuidado con la lava! Retos de mayor precisión.',
+                    btnColor: 'bg-orange-500 border-orange-700 hover:bg-orange-400'
+                },
+                {
+                    index: 3,
+                    id: 'expert',
+                    name: '4. Dificultad Mayor',
+                    biome: '🏛️ Templo Ancestral',
+                    themeClass: 'theme-expert',
+                    particleType: 'firefly',
+                    desc: 'El desafío definitivo para expertos en números.',
+                    btnColor: 'bg-purple-600 border-purple-800 hover:bg-purple-500'
+                }
+            ]
+        };
+
+        /**
+         * MÓDULO 4: GENERADOR DINÁMICO DE PREGUNTAS MATEMÁTICAS
+         * Blindado contra bucles infinitos mediante contadores de seguridad y generación directa.
+         */
+        const QuestionGenerator = {
+            randInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+
+            shuffle(arr) {
+                const copy = [...arr];
+                for (let i = copy.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [copy[i], copy[j]] = [copy[j], copy[i]];
+                }
+                return copy;
+            },
+
+            gcd(a, b) {
+                while (b !== 0) {
+                    let t = b;
+                    b = a % b;
+                    a = t;
+                }
+                return a;
+            },
+
+            lcm(a, b) {
+                return (a * b) / this.gcd(a, b);
+            },
+
+            generateSet(category, levelIdx) {
+                const questions = [];
+                const usedSignatures = new Set();
+                let safetyCounter = 0;
+
+                while (questions.length < 10 && safetyCounter < 200) {
+                    safetyCounter++;
+                    let q;
+                    if (category === 'multiples') q = this.makeMultipleQuestion(levelIdx, questions.length);
+                    else if (category === 'divisors') q = this.makeDivisorQuestion(levelIdx, questions.length);
+                    else q = this.makeMcdMcmQuestion(levelIdx, questions.length);
+
+                    // Evitar preguntas exactamente repetidas, pero permitir si se acerca al límite
+                    if (!usedSignatures.has(q.text) || safetyCounter > 150) {
+                        usedSignatures.add(q.text);
+                        questions.push(q);
+                    }
+                }
+                return questions;
+            },
+
+            makeMultipleQuestion(levelIdx, step) {
+                const ranges = [
+                    [2, 5],   // Fácil
+                    [4, 9],   // Normal
+                    [6, 13],  // Difícil
+                    [8, 18]   // Dificultad Mayor
+                ];
+                const [minB, maxB] = ranges[levelIdx];
+                const base = this.randInt(minB, maxB);
+                const variant = step % 4;
+
+                if (variant === 0) {
+                    // Tipo A: ¿Cuál es múltiplo de X? (Generación directa sin bucles infinitos)
+                    const k = this.randInt(2 + levelIdx, 8 + levelIdx * 2);
+                    const correct = base * k;
+                    const distractors = new Set();
+                    let attempts = 0;
+
+                    while (distractors.size < 3 && attempts < 100) {
+                        attempts++;
+                        const stepDir = attempts % 2 === 0 ? 1 : -1;
+                        const delta = Math.ceil(attempts / 2);
+                        const candidate = correct + stepDir * delta;
+                        if (candidate > 0 && candidate % base !== 0) {
+                            distractors.add(candidate);
+                        }
+                    }
+                    // Respaldo garantizado en caso extremo
+                    let fallback = correct + 1;
+                    while (distractors.size < 3) {
+                        if (fallback % base !== 0) distractors.add(fallback);
+                        fallback++;
+                    }
+
+                    return {
+                        pill: `Múltiplos de ${base}`,
+                        text: `¿Cuál de estos números es un MÚLTIPLO de ${base}?`,
+                        hint: `Recuerda: los múltiplos de ${base} se obtienen multiplicando ${base} por 1, 2, 3...`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `¡Exacto! ${correct} es múltiplo de ${base} porque ${base} × ${k} = ${correct}.`
+                    };
+                } else if (variant === 1) {
+                    // Tipo B: ¿Cuál NO es múltiplo de X?
+                    const k1 = this.randInt(2, 4);
+                    const k2 = this.randInt(5, 7);
+                    const k3 = this.randInt(8, 11);
+                    const m1 = base * k1;
+                    const m2 = base * k2;
+                    const m3 = base * k3;
+                    const wrong = base * this.randInt(3, 9) + 1;
+
+                    return {
+                        pill: `Detector de Múltiplos`,
+                        text: `Tres piedras son múltiplos de ${base}, pero UNA es una trampa. ¿Cuál NO es múltiplo de ${base}?`,
+                        hint: `Divide mentalmente entre ${base}: el que deje residuo no es múltiplo.`,
+                        options: this.shuffle([m1, m2, m3, wrong]),
+                        answer: wrong,
+                        explanation: `${wrong} NO es múltiplo de ${base} porque al dividirlo entre ${base} sobra 1.`
+                    };
+                } else if (variant === 2) {
+                    // Tipo C: Completar la secuencia de múltiplos
+                    const startK = this.randInt(1 + levelIdx, 5 + levelIdx);
+                    const s1 = base * startK;
+                    const s2 = base * (startK + 1);
+                    const correct = base * (startK + 2);
+                    const s4 = base * (startK + 3);
+
+                    const distractors = new Set([
+                        correct + 1,
+                        correct + base * 2,
+                        Math.max(1, correct - 1)
+                    ]);
+                    let fill = correct + 2;
+                    while (distractors.size < 3) {
+                        if (fill !== correct) distractors.add(fill);
+                        fill++;
+                    }
+
+                    return {
+                        pill: `Secuencia Jurásica`,
+                        text: `Completa la secuencia de múltiplos de ${base}: ${s1}, ${s2}, [ ? ], ${s4}`,
+                        hint: `Suma ${base} al número ${s2} para descubrir la piedra que falta.`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `La secuencia avanza de ${base} en ${base}: ${s2} + ${base} = ${correct}.`
+                    };
+                } else {
+                    // Tipo D: Primer múltiplo mayor que X
+                    const refK = this.randInt(3 + levelIdx, 8 + levelIdx);
+                    const lowerMult = base * refK;
+                    const threshold = lowerMult + this.randInt(1, base - 1);
+                    const correct = base * (refK + 1);
+
+                    const distractors = new Set([
+                        lowerMult,
+                        correct + base,
+                        threshold + 1 === correct ? threshold + 2 : threshold + 1
+                    ]);
+                    let fill = correct + 3;
+                    while (distractors.size < 3) {
+                        if (fill !== correct) distractors.add(fill);
+                        fill++;
+                    }
+
+                    return {
+                        pill: `Salto Mayor`,
+                        text: `¿Cuál es el primer múltiplo de ${base} que es MAYOR que ${threshold}?`,
+                        hint: `Busca en la tabla del ${base} el primer resultado que supere a ${threshold}.`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `${base} × ${refK} = ${lowerMult} (es menor), por eso el siguiente múltiplo es ${base} × ${refK + 1} = ${correct}.`
+                    };
+                }
+            },
+
+            makeDivisorQuestion(levelIdx, step) {
+                const pools = [
+                    [6, 8, 9, 10, 12, 14, 15, 16, 18, 20],
+                    [18, 20, 24, 25, 27, 28, 30, 32, 36, 40],
+                    [36, 42, 45, 48, 50, 54, 56, 60, 64, 72],
+                    [60, 72, 75, 80, 84, 90, 96, 100, 108, 120]
+                ];
+                const pool = pools[levelIdx];
+                const num = pool[this.randInt(0, pool.length - 1)];
+
+                const divs = [];
+                for (let i = 1; i <= num; i++) {
+                    if (num % i === 0) divs.push(i);
+                }
+
+                const variant = step % 4;
+                if (variant === 0) {
+                    const validDivs = divs.filter(d => d > 1 && d < num);
+                    const correct = validDivs[this.randInt(0, validDivs.length - 1)];
+                    const distractors = new Set();
+                    let attempts = 0;
+                    while (distractors.size < 3 && attempts < 100) {
+                        attempts++;
+                        const cand = this.randInt(2, Math.max(12, Math.floor(num / 2) + 5));
+                        if (num % cand !== 0) distractors.add(cand);
+                    }
+                    let fallback = 2;
+                    while (distractors.size < 3) {
+                        if (num % fallback !== 0) distractors.add(fallback);
+                        fallback++;
+                    }
+                    return {
+                        pill: `Divisores de ${num}`,
+                        text: `¿Cuál de estos números es un DIVISOR exacto de ${num}?`,
+                        hint: `Un divisor divide a ${num} sin dejar residuo.`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `${correct} es divisor de ${num} porque ${num} ÷ ${correct} = ${num / correct} (división exacta).`
+                    };
+                } else if (variant === 1) {
+                    const validDivs = this.shuffle(divs);
+                    const d1 = validDivs[0];
+                    const d2 = validDivs[1];
+                    const d3 = validDivs[2];
+                    let notDiv = 3;
+                    while (num % notDiv === 0) notDiv++;
+                    return {
+                        pill: `Cueva de Cristal`,
+                        text: `¿Cuál de estos números NO es divisor de ${num}?`,
+                        hint: `Busca el número que no cabe una cantidad exacta de veces en ${num}.`,
+                        options: this.shuffle([d1, d2, d3, notDiv]),
+                        answer: notDiv,
+                        explanation: `${notDiv} no divide exactamente a ${num}. Los demás (${d1}, ${d2} y ${d3}) sí son divisores.`
+                    };
+                } else if (variant === 2) {
+                    const correct = divs.length;
+                    const distractors = new Set([correct - 1, correct + 1, correct + 2].filter(v => v > 1));
+                    let fill = correct + 3;
+                    while (distractors.size < 3) {
+                        distractors.add(fill++);
+                    }
+                    return {
+                        pill: `Conteo de Divisores`,
+                        text: `¿Cuántos divisores en total tiene el número ${num}?`,
+                        hint: `Incluye al 1 y al mismo ${num}. Sus divisores empiezan por: ${divs.slice(0, 2).join(', ')}...`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `El número ${num} tiene ${correct} divisores: {${divs.join(', ')}}.`
+                    };
+                } else {
+                    // Divisor común de dos números
+                    const num2 = pool[(this.randInt(1, pool.length - 1) + 1) % pool.length];
+                    const common = this.gcd(num, num2);
+                    const distractors = new Set();
+                    let cand = 2;
+                    while (distractors.size < 3 && cand < 100) {
+                        if (cand !== common && (num % cand !== 0 || num2 % cand !== 0)) {
+                            distractors.add(cand);
+                        }
+                        cand++;
+                    }
+                    return {
+                        pill: `Divisor Común`,
+                        text: `¿Qué número es divisor común de ${num} y ${num2} al mismo tiempo?`,
+                        hint: `Debe dividir de forma exacta tanto a ${num} como a ${num2}.`,
+                        options: this.shuffle([common, ...Array.from(distractors).slice(0, 3)]),
+                        answer: common,
+                        explanation: `${common} divide exactamente a ${num} (${num}÷${common}=${num/common}) y a ${num2} (${num2}÷${common}=${num2/common}).`
+                    };
+                }
+            },
+
+            makeMcdMcmQuestion(levelIdx, step) {
+                const pairsByLevel = [
+                    [[4, 6], [6, 8], [4, 10], [6, 9], [8, 12], [5, 10], [6, 12], [9, 12], [10, 15], [8, 10]],
+                    [[12, 18], [15, 20], [14, 21], [16, 24], [18, 24], [12, 16], [20, 30], [15, 25], [18, 27], [24, 36]],
+                    [[24, 36], [30, 45], [28, 42], [32, 48], [36, 54], [40, 60], [27, 45], [35, 50], [42, 56], [48, 72]],
+                    [[48, 60], [54, 72], [60, 84], [72, 96], [64, 80], [75, 100], [84, 126], [90, 120], [96, 144], [108, 144]]
+                ];
+
+                const pairList = pairsByLevel[levelIdx];
+                const [a, b] = pairList[step % pairList.length];
+                const variant = step % 3;
+
+                if (variant === 0) {
+                    const correct = this.gcd(a, b);
+                    const distractors = new Set();
+                    if (correct > 1) distractors.add(1);
+                    if (correct * 2 <= Math.min(a, b)) distractors.add(correct * 2);
+                    if (Math.min(a, b) !== correct) distractors.add(Math.min(a, b));
+                    let cand = 2;
+                    while (distractors.size < 3 && cand < 200) {
+                        if (cand !== correct) distractors.add(cand);
+                        cand++;
+                    }
+                    return {
+                        pill: `Máximo Común Divisor (MCD)`,
+                        text: `Calcula el MCD (Máximo Común Divisor) de ${a} y ${b}:`,
+                        hint: `Es el número más grande que divide exactamente tanto a ${a} como a ${b}.`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `El mayor divisor común entre ${a} y ${b} es ${correct} (${a}÷${correct}=${a/correct} y ${b}÷${correct}=${b/correct}).`
+                    };
+                } else if (variant === 1) {
+                    const correct = this.lcm(a, b);
+                    const distractors = new Set();
+                    if (a * b !== correct) distractors.add(a * b);
+                    if (this.gcd(a, b) !== correct) distractors.add(this.gcd(a, b));
+                    distractors.add(correct + Math.min(a, b));
+                    let cand = correct + 2;
+                    while (distractors.size < 3 && cand < correct + 100) {
+                        if (cand !== correct) distractors.add(cand);
+                        cand += 2;
+                    }
+                    return {
+                        pill: `Mínimo Común Múltiplo (MCM)`,
+                        text: `Calcula el MCM (Mínimo Común Múltiplo) de ${a} y ${b}:`,
+                        hint: `Es el primer múltiplo positivo en el que coinciden las tablas de ${a} y ${b}.`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `El menor múltiplo común de ${a} y ${b} es ${correct}.`
+                    };
+                } else {
+                    // Problema contextualizado con dinosaurios
+                    const correct = this.lcm(a, b);
+                    const distractors = new Set([a + b, correct * 2, Math.max(1, correct - Math.min(a, b))]);
+                    let fill = correct + 5;
+                    while (distractors.size < 3) {
+                        if (fill !== correct) distractors.add(fill);
+                        fill += 3;
+                    }
+                    return {
+                        pill: `Acertijo del Templo (MCM)`,
+                        text: `Rexy ruge cada ${a} minutos y Triki cada ${b} minutos. Si rugieron juntos ahora, ¿en cuántos minutos volverán a coincidir?`,
+                        hint: `Calcula el Mínimo Común Múltiplo (MCM) de ${a} y ${b}.`,
+                        options: this.shuffle([correct, ...Array.from(distractors).slice(0, 3)]),
+                        answer: correct,
+                        explanation: `Volverán a coincidir en ${correct} minutos, porque el MCM(${a}, ${b}) = ${correct}.`
+                    };
+                }
+            }
+        };
+
+        /**
+         * MÓDULO 5: CONTROLADOR PRINCIPAL DE LA APLICACIÓN (GameApp)
+         */
+        const GameApp = {
+            state: {
+                playerName: '',
+                selectedDinoId: 'rexy',
+                currentCategory: null,
+                currentLevelIdx: 0,
+                questions: [],
+                qIndex: 0,
+                score: 0,
+                lives: 3,
+                streak: 0,
+                maxStreak: 0,
+                correctCount: 0,
+                unlockedRewards: [], // IDs de premios ganados
+                completedLevels: {}  // Ej: { 'multiples_0': true }
+            },
+
+            init() {
+                this.loadProgress();
+                this.renderDinoSelector();
+                this.spawnAmbientParticles('leaf');
+                this.updateGlobalBadges();
+            },
+
+            /* Persistencia local opcional para mantener premios del niño */
+            loadProgress() {
+                try {
+                    const saved = localStorage.getItem('dinomath_save_v1');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        this.state.playerName = parsed.playerName || '';
+                        this.state.selectedDinoId = parsed.selectedDinoId || 'rexy';
+                        this.state.unlockedRewards = parsed.unlockedRewards || [];
+                        this.state.completedLevels = parsed.completedLevels || {};
+                        if (this.state.playerName) {
+                            document.getElementById('input-player-name').value = this.state.playerName;
+                        }
+                    }
+                } catch (e) { /* Modo sin almacenamiento */ }
+            },
+
+            saveProgress() {
+                try {
+                    localStorage.setItem('dinomath_save_v1', JSON.stringify({
+                        playerName: this.state.playerName,
+                        selectedDinoId: this.state.selectedDinoId,
+                        unlockedRewards: this.state.unlockedRewards,
+                        completedLevels: this.state.completedLevels
+                    }));
+                } catch (e) {}
+            },
+
+            getSelectedDino() {
+                return DinoAssets.characters.find(d => d.id === this.state.selectedDinoId) || DinoAssets.characters[0];
+            },
+
+            /* Renderiza las 4 tarjetas de dinosaurios en la bienvenida */
+            renderDinoSelector() {
+                const grid = document.getElementById('dino-selector-grid');
+                grid.innerHTML = DinoAssets.characters.map(dino => {
+                    const isSelected = dino.id === this.state.selectedDinoId;
+                    return `
+                        <div onclick="GameApp.chooseDino('${dino.id}')" 
+                             class="cursor-pointer rounded-2xl p-3 border-4 transition-all duration-200 flex flex-col items-center
+                             ${isSelected ? 'bg-amber-100 border-amber-500 scale-105 shadow-lg' : 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-400'}">
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 ${isSelected ? 'animate-dino-idle' : ''}">
+                                ${dino.svg}
+                            </div>
+                            <h3 class="font-dino font-extrabold text-lg text-slate-800 mt-1">${dino.name}</h3>
+                            <span class="text-xs font-bold text-emerald-700">${dino.species}</span>
+                            <span class="mt-2 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full ${isSelected ? 'bg-amber-500 text-white' : 'bg-emerald-200 text-emerald-900'}">
+                                ${isSelected ? '✔ Seleccionado' : 'Elegir'}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            chooseDino(id) {
+                this.state.selectedDinoId = id;
+                SoundFX.playTone(600, 'sine', 0.1);
+                this.renderDinoSelector();
+            },
+
+            /* Validar nombre e iniciar al menú */
+            startAdventure() {
+                const input = document.getElementById('input-player-name');
+                const rawName = input.value.trim();
+                if (!rawName) {
+                    SoundFX.error();
+                    this.showAlertModal({
+                        type: 'news',
+                        badge: '¡NOTICIA!',
+                        title: '¡Falta tu nombre de explorador!',
+                        message: 'Escribe tu nombre o apodo arriba para que los dinosaurios sepan quién lidera la expedición.',
+                        btnText: '¡Entendido!'
+                    });
+                    input.focus();
+                    return;
+                }
+
+                this.state.playerName = rawName;
+                this.saveProgress();
+                SoundFX.success();
+                this.goToScreen('menu');
+
+                // Alerta de bienvenida tipo ¡NOTICIA!
+                const dino = this.getSelectedDino();
+                this.showAlertModal({
+                    type: 'news',
+                    badge: '¡NOTICIA DE LA JUNGLA!',
+                    title: `¡Bienvenido, ${this.state.playerName}!`,
+                    message: `${dino.name} está listo para acompañarte. Elige entre Múltiplos, Divisores o MCD/MCM y gana los 12 trofeos jurásicos.`,
+                    btnText: '¡A jugar! 🌴'
+                });
+            },
+
+            /* Navegación entre pantallas SPA */
+            goToScreen(screenId) {
+                const screens = ['welcome', 'menu', 'levels', 'game', 'victory'];
+                screens.forEach(s => {
+                    document.getElementById(`screen-${s}`).classList.add('hidden');
+                });
+                document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+
+                // Mostrar u ocultar insignia del jugador en cabecera
+                const headerBadge = document.getElementById('header-player-badge');
+                if (screenId === 'welcome') {
+                    headerBadge.classList.add('hidden');
+                    headerBadge.classList.remove('flex');
+                    this.setTheme('theme-welcome', 'leaf');
+                } else {
+                    headerBadge.classList.remove('hidden');
+                    headerBadge.classList.add('flex');
+                    this.updateGlobalBadges();
+                }
+
+                if (screenId === 'menu') {
+                    this.setTheme('theme-welcome', 'leaf');
+                    this.updateMenuProgress();
+                }
+            },
+
+            setTheme(themeClass, particleType) {
+                document.body.className = `${themeClass} min-h-screen text-slate-800 relative transition-colors duration-700`;
+                this.spawnAmbientParticles(particleType);
+            },
+
+            updateGlobalBadges() {
+                const dino = this.getSelectedDino();
+                document.getElementById('header-dino-mini').innerHTML = dino.svg;
+                document.getElementById('header-player-name').textContent = this.state.playerName;
+                document.getElementById('header-trophy-count').textContent = this.state.unlockedRewards.length;
+
+                document.getElementById('menu-dino-avatar').innerHTML = dino.svg;
+                document.getElementById('menu-player-name').textContent = this.state.playerName;
+                document.getElementById('menu-trophy-count').textContent = this.state.unlockedRewards.length;
+            },
+
+            updateMenuProgress() {
+                ['multiples', 'divisors', 'mcd_mcm'].forEach(catId => {
+                    let count = 0;
+                    for (let i = 0; i < 4; i++) {
+                        if (this.state.completedLevels[`${catId}_${i}`]) count++;
+                    }
+                    document.getElementById(`prog-text-${catId}`).textContent = `${count} / 4 Niveles`;
+                    document.getElementById(`prog-bar-${catId}`).style.width = `${(count / 4) * 100}%`;
+                });
+            },
+
+            /* Seleccionar una de las 3 categorías educativas */
+            selectCategory(catId) {
+                this.state.currentCategory = catId;
+                SoundFX.playTone(550, 'triangle', 0.12);
+                const cat = GameConfig.categories[catId];
+
+                document.getElementById('level-cat-badge').textContent = cat.badge;
+                document.getElementById('level-cat-title').textContent = cat.title;
+
+                const grid = document.getElementById('levels-grid');
+                grid.innerHTML = GameConfig.levels.map(lvl => {
+                    const completed = !!this.state.completedLevels[`${catId}_${lvl.index}`];
+                    const reward = cat.rewards[lvl.index];
+                    return `
+                        <div class="rounded-3xl p-5 border-4 ${completed ? 'bg-amber-50 border-amber-400' : 'bg-white border-slate-200'} flex flex-col justify-between shadow-md">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">${lvl.biome}</span>
+                                    ${completed ? '<span class="text-lg" title="Completado">✅</span>' : ''}
+                                </div>
+                                <h3 class="text-xl font-extrabold text-slate-800 mb-1">${lvl.name}</h3>
+                                <p class="text-xs text-slate-600 mb-4">${lvl.desc}</p>
+                            </div>
+                            <div>
+                                <div class="bg-slate-100 rounded-2xl p-2.5 mb-3 flex items-center gap-2 border border-slate-200">
+                                    <span class="text-2xl">${reward.icon}</span>
+                                    <div class="text-left leading-tight">
+                                        <div class="text-[10px] uppercase font-bold text-slate-400">Premio del Nivel</div>
+                                        <div class="text-xs font-extrabold text-slate-700">${reward.name}</div>
+                                    </div>
+                                </div>
+                                <button onclick="GameApp.startLevel(${lvl.index})" class="w-full btn-dino ${lvl.btnColor} text-white font-dino font-bold py-2.5 rounded-2xl text-base">
+                                    ${completed ? 'Jugar otra vez' : '¡Iniciar Reto!'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                this.goToScreen('levels');
+            },
+
+            backToLevels() {
+                this.selectCategory(this.state.currentCategory);
+            },
+
+            retryCurrentLevel() {
+                this.startLevel(this.state.currentLevelIdx);
+            },
+
+            /* Iniciar partida de 10 preguntas */
+            startLevel(levelIdx) {
+                this.state.currentLevelIdx = levelIdx;
+                const levelInfo = GameConfig.levels[levelIdx];
+                const catInfo = GameConfig.categories[this.state.currentCategory];
+
+                // Reiniciar variables de partida
+                this.state.questions = QuestionGenerator.generateSet(this.state.currentCategory, levelIdx);
+                this.state.qIndex = 0;
+                this.state.score = 0;
+                this.state.lives = 3;
+                this.state.streak = 0;
+                this.state.maxStreak = 0;
+                this.state.correctCount = 0;
+
+                // Cambiar escenario de jungla según el nivel
+                this.setTheme(levelInfo.themeClass, levelInfo.particleType);
+                document.getElementById('hud-level-name').textContent = levelInfo.name;
+                document.getElementById('stage-biome-label').textContent = levelInfo.biome;
+
+                // Colocar dinosaurio del jugador en la pista
+                const dino = this.getSelectedDino();
+                const actor = document.getElementById('game-dino-actor');
+                actor.innerHTML = dino.svg;
+                actor.style.left = '2%';
+
+                // Renderizar piedras del camino (0 a 10)
+                const stonesContainer = document.getElementById('stepping-stones');
+                const reward = catInfo.rewards[levelIdx];
+                let stonesHTML = '';
+                for (let i = 0; i <= 10; i++) {
+                    if (i === 10) {
+                        stonesHTML += `
+                            <div class="flex flex-col items-center">
+                                <span class="text-2xl sm:text-3xl mb-1 animate-bounce">${reward.icon}</span>
+                                <div class="w-8 sm:w-11 h-4 bg-amber-400 border-2 border-amber-700 rounded-full shadow"></div>
+                            </div>
+                        `;
+                    } else {
+                        stonesHTML += `
+                            <div id="stone-${i}" class="w-6 sm:w-9 h-3.5 rounded-full border-2 transition-colors ${i === 0 ? 'bg-emerald-400 border-emerald-700' : 'bg-stone-300 border-stone-500'}"></div>
+                        `;
+                    }
+                }
+                stonesContainer.innerHTML = stonesHTML;
+
+                this.goToScreen('game');
+                this.renderCurrentQuestion();
+            },
+
+            renderCurrentQuestion() {
+                const q = this.state.questions[this.state.qIndex];
+                document.getElementById('hud-q-current').textContent = this.state.qIndex + 1;
+                document.getElementById('hud-score').textContent = this.state.score;
+                document.getElementById('hud-lives').textContent = '❤️'.repeat(this.state.lives) + '🖤'.repeat(3 - this.state.lives);
+
+                const streakBadge = document.getElementById('stage-streak-badge');
+                if (this.state.streak >= 2) {
+                    streakBadge.classList.remove('hidden');
+                    streakBadge.textContent = `🔥 Racha: ${this.state.streak}`;
+                } else {
+                    streakBadge.classList.add('hidden');
+                }
+
+                document.getElementById('question-topic-pill').textContent = q.pill;
+                document.getElementById('question-text').textContent = q.text;
+                document.getElementById('question-hint').textContent = q.hint;
+
+                const colors = [
+                    'bg-emerald-500 hover:bg-emerald-400 border-emerald-700',
+                    'bg-sky-500 hover:bg-sky-400 border-sky-700',
+                    'bg-amber-500 hover:bg-amber-400 border-amber-700',
+                    'bg-purple-500 hover:bg-purple-400 border-purple-700'
+                ];
+                const letters = ['A', 'B', 'C', 'D'];
+
+                const grid = document.getElementById('options-grid');
+                grid.innerHTML = q.options.map((opt, i) => `
+                    <button onclick="GameApp.submitAnswer(${opt})" 
+                        class="btn-dino ${colors[i]} text-white font-dino font-extrabold text-xl sm:text-2xl py-4 px-5 rounded-2xl shadow-md flex items-center justify-between">
+                        <span class="bg-black/20 w-9 h-9 rounded-xl flex items-center justify-center text-base">${letters[i]}</span>
+                        <span class="flex-1 text-center">${opt}</span>
+                        <span class="w-9"></span>
+                    </button>
+                `).join('');
+            },
+
+            /* Evaluar respuesta del jugador */
+            submitAnswer(selectedValue) {
+                const q = this.state.questions[this.state.qIndex];
+                const isCorrect = selectedValue === q.answer;
+                const actor = document.getElementById('game-dino-actor');
+
+                // Deshabilitar botones temporalmente para evitar doble clic
+                document.querySelectorAll('#options-grid button').forEach(b => b.disabled = true);
+
+                if (isCorrect) {
+                    SoundFX.success();
+                    this.state.correctCount++;
+                    this.state.streak++;
+                    if (this.state.streak > this.state.maxStreak) this.state.maxStreak = this.state.streak;
+                    const bonus = this.state.streak >= 3 ? 50 : 0;
+                    this.state.score += 100 + bonus;
+
+                    // Animar salto y avance del dinosaurio en el sendero
+                    actor.classList.remove('animate-dino-idle', 'animate-dino-hurt');
+                    void actor.offsetWidth; // Reiniciar animación CSS
+                    actor.classList.add('animate-dino-jump');
+
+                    const nextStep = this.state.qIndex + 1;
+                    const percent = Math.min(88, nextStep * 8.8);
+                    actor.style.left = `${percent}%`;
+
+                    const stone = document.getElementById(`stone-${nextStep}`);
+                    if (stone) {
+                        stone.classList.remove('bg-stone-300', 'border-stone-500');
+                        stone.classList.add('bg-emerald-400', 'border-emerald-700');
+                    }
+
+                    setTimeout(() => {
+                        actor.classList.remove('animate-dino-jump');
+                        actor.classList.add('animate-dino-idle');
+                    }, 650);
+
+                    // Notificación ¡ÉXITO! o ¡NOTICIA! si logra racha de 3 o 5
+                    const isMilestoneStreak = (this.state.streak === 3 || this.state.streak === 5);
+                    this.showAlertModal({
+                        type: isMilestoneStreak ? 'news' : 'success',
+                        badge: isMilestoneStreak ? `¡NOTICIA! RACHA DE ${this.state.streak} 🔥` : '¡ÉXITO!',
+                        title: isMilestoneStreak ? '¡Imparable en la Jungla!' : '¡Respuesta Correcta!',
+                        message: `${q.explanation}${bonus > 0 ? ' (+50 pts extra por racha)' : ''}`,
+                        btnText: nextStep < 10 ? 'Siguiente Piedra ➔' : '¡Reclamar Premio! 🏆',
+                        onClose: () => this.advanceStep()
+                    });
+
+                } else {
+                    SoundFX.error();
+                    this.state.streak = 0;
+                    this.state.lives--;
+
+                    // Animar tropiezo del dinosaurio
+                    actor.classList.remove('animate-dino-idle');
+                    void actor.offsetWidth;
+                    actor.classList.add('animate-dino-hurt');
+                    setTimeout(() => {
+                        actor.classList.remove('animate-dino-hurt');
+                        actor.classList.add('animate-dino-idle');
+                    }, 600);
+
+                    if (this.state.lives <= 0) {
+                        this.showAlertModal({
+                            type: 'error',
+                            badge: '¡ALERTA! SIN ENERGÍA',
+                            title: '¡Oh no! Tu dino necesita descansar',
+                            message: `La respuesta correcta era ${q.answer}. ${q.explanation}`,
+                            btnText: '🔄 Reintentar Nivel',
+                            onClose: () => this.retryCurrentLevel()
+                        });
+                    } else {
+                        this.showAlertModal({
+                            type: 'error',
+                            badge: '¡ALERTA! ROCA RESBALADIZA',
+                            title: `¡Ups! ${selectedValue} no era correcto`,
+                            message: `${q.explanation} Te quedan ${this.state.lives} ❤️ de energía.`,
+                            btnText: 'Continuar con cuidado ➔',
+                            onClose: () => this.advanceStep()
+                        });
+                    }
+                }
+            },
+
+            advanceStep() {
+                this.state.qIndex++;
+                if (this.state.qIndex >= 10) {
+                    this.completeLevelVictory();
+                } else {
+                    this.renderCurrentQuestion();
+                }
+            },
+
+            /* Pantalla Final de Victoria y Entrega de Premio */
+            completeLevelVictory() {
+                SoundFX.victory();
+                this.launchConfetti();
+
+                const cat = GameConfig.categories[this.state.currentCategory];
+                const reward = cat.rewards[this.state.currentLevelIdx];
+                const levelKey = `${this.state.currentCategory}_${this.state.currentLevelIdx}`;
+
+                this.state.completedLevels[levelKey] = true;
+                if (!this.state.unlockedRewards.includes(reward.id)) {
+                    this.state.unlockedRewards.push(reward.id);
+                }
+                this.saveProgress();
+                this.updateGlobalBadges();
+
+                document.getElementById('victory-player-name').textContent = this.state.playerName;
+                document.getElementById('victory-reward-icon').textContent = reward.icon;
+                document.getElementById('victory-reward-name').textContent = reward.name;
+                document.getElementById('victory-reward-desc').textContent = reward.desc;
+                document.getElementById('victory-score').textContent = this.state.score;
+                document.getElementById('victory-accuracy').textContent = `${this.state.correctCount}/10`;
+                document.getElementById('victory-streak').textContent = `🔥 ${this.state.maxStreak}`;
+
+                this.goToScreen('victory');
+            },
+
+            confirmQuitLevel() {
+                this.showAlertModal({
+                    type: 'news',
+                    badge: '¡NOTICIA!',
+                    title: '¿Salir de la expedición actual?',
+                    message: 'Si sales ahora perderás el avance de estas 10 preguntas.',
+                    btnText: 'Sí, volver al mapa',
+                    secondaryText: 'Seguir jugando',
+                    onClose: () => this.backToLevels()
+                });
+            },
+
+            /* Modal Reutilizable para ¡ÉXITO!, ¡ALERTA! y ¡NOTICIA! */
+            showAlertModal({ type, badge, title, message, btnText, secondaryText = null, onClose = null }) {
+                const overlay = document.getElementById('modal-overlay');
+                const card = document.getElementById('modal-card');
+                const badgeEl = document.getElementById('modal-badge');
+                const btnEl = document.getElementById('modal-primary-btn');
+                const actionsEl = document.getElementById('modal-actions');
+
+                document.getElementById('modal-illustration').innerHTML = DinoAssets.alertSVGs[type] || DinoAssets.alertSVGs.news;
+                badgeEl.textContent = badge;
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-message').textContent = message;
+
+                // Estilos según tipo de alerta
+                card.className = 'bg-white rounded-3xl max-w-md w-full p-6 text-center border-4 shadow-2xl animate-pop-in relative';
+                if (type === 'success') {
+                    card.classList.add('border-emerald-500');
+                    badgeEl.className = 'inline-block font-dino font-extrabold text-sm uppercase tracking-wider px-4 py-1 rounded-full mb-2 bg-emerald-100 text-emerald-800';
+                    btnEl.className = 'btn-dino bg-emerald-500 hover:bg-emerald-400 border-emerald-700 font-dino font-bold px-8 py-3 rounded-2xl text-lg text-white';
+                } else if (type === 'error') {
+                    card.classList.add('border-red-500');
+                    badgeEl.className = 'inline-block font-dino font-extrabold text-sm uppercase tracking-wider px-4 py-1 rounded-full mb-2 bg-red-100 text-red-800';
+                    btnEl.className = 'btn-dino bg-red-500 hover:bg-red-400 border-red-700 font-dino font-bold px-8 py-3 rounded-2xl text-lg text-white';
+                } else {
+                    card.classList.add('border-amber-500');
+                    badgeEl.className = 'inline-block font-dino font-extrabold text-sm uppercase tracking-wider px-4 py-1 rounded-full mb-2 bg-amber-100 text-amber-900';
+                    btnEl.className = 'btn-dino bg-amber-500 hover:bg-amber-400 border-amber-700 font-dino font-bold px-8 py-3 rounded-2xl text-lg text-white';
+                }
+
+                // Limpiar botón secundario previo si existía
+                const oldSec = document.getElementById('modal-secondary-btn');
+                if (oldSec) oldSec.remove();
+
+                if (secondaryText) {
+                    const secBtn = document.createElement('button');
+                    secBtn.id = 'modal-secondary-btn';
+                    secBtn.className = 'btn-dino bg-slate-200 hover:bg-slate-300 border-slate-400 text-slate-800 font-dino font-bold px-5 py-3 rounded-2xl text-base';
+                    secBtn.textContent = secondaryText;
+                    secBtn.onclick = () => {
+                        overlay.classList.add('hidden');
+                        overlay.classList.remove('flex');
+                    };
+                    actionsEl.prepend(secBtn);
+                }
+
+                btnEl.textContent = btnText;
+                btnEl.onclick = () => {
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                    if (onClose) onClose();
+                };
+
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            },
+
+            /* Vitrina de Premios Coleccionables */
+            showTrophyModal() {
+                SoundFX.news();
+                const grid = document.getElementById('trophy-grid');
+                const allRewards = [];
+                Object.values(GameConfig.categories).forEach(cat => {
+                    cat.rewards.forEach((r, idx) => {
+                        allRewards.push({
+                            ...r,
+                            catName: cat.badge,
+                            levelName: GameConfig.levels[idx].name,
+                            unlocked: this.state.unlockedRewards.includes(r.id)
+                        });
+                    });
+                });
+
+                grid.innerHTML = allRewards.map(item => `
+                    <div class="rounded-2xl p-3 border-2 text-center ${item.unlocked ? 'bg-amber-50 border-amber-400 shadow-sm' : 'bg-slate-100 border-slate-200 opacity-60'}">
+                        <div class="text-4xl mb-1 ${item.unlocked ? '' : 'grayscale'}">${item.unlocked ? item.icon : '🔒'}</div>
+                        <div class="font-dino font-bold text-sm text-slate-800">${item.unlocked ? item.name : 'Bloqueado'}</div>
+                        <div class="text-[11px] font-bold text-emerald-700">${item.catName}</div>
+                        <div class="text-[10px] text-slate-500">${item.levelName}</div>
+                    </div>
+                `).join('');
+
+                const modal = document.getElementById('trophy-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            },
+
+            closeTrophyModal() {
+                const modal = document.getElementById('trophy-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            },
+
+            /* Partículas ambientales dinámicas según el escenario de jungla */
+            spawnAmbientParticles(type) {
+                const container = document.getElementById('ambient-particles');
+                container.innerHTML = '';
+                const symbols = {
+                    leaf: ['🍃', '🌿'],
+                    bubble: ['🫧', '💧'],
+                    ember: ['🔥', '✨'],
+                    firefly: ['✨', '🌟']
+                };
+                const chosen = symbols[type] || symbols.leaf;
+
+                for (let i = 0; i < 12; i++) {
+                    const el = document.createElement('div');
+                    el.textContent = chosen[i % chosen.length];
+                    el.className = 'absolute text-lg sm:text-2xl opacity-70';
+                    el.style.left = `${Math.random() * 95}%`;
+                    el.style.top = `-30px`;
+                    el.style.animation = `fallingLeaf ${9 + Math.random() * 10}s linear infinite`;
+                    el.style.animationDelay = `-${Math.random() * 12}s`;
+                    container.appendChild(el);
+                }
+            },
+
+            /* Confeti animado al ganar un nivel */
+            launchConfetti() {
+                const container = document.getElementById('confetti-container');
+                container.innerHTML = '';
+                const colors = ['#facc15', '#22c55e', '#38bdf8', '#f43f5e', '#a855f7', '#fb923c'];
+                for (let i = 0; i < 55; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'absolute w-3 h-3 rounded-sm';
+                    piece.style.backgroundColor = colors[i % colors.length];
+                    piece.style.left = `${Math.random() * 100}%`;
+                    piece.style.top = `-15px`;
+                    piece.style.animation = `confettiFall ${2.2 + Math.random() * 2}s ease-out forwards`;
+                    piece.style.animationDelay = `${Math.random() * 0.5}s`;
+                    container.appendChild(piece);
+                }
+                setTimeout(() => { container.innerHTML = ''; }, 4500);
+            }
+        };
+
+        // Arrancar aplicación al cargar el DOM
+        window.addEventListener('DOMContentLoaded', () => {
+            GameApp.init();
+        });
+    </script>
+</body>
+</html>
